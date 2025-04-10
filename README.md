@@ -1,43 +1,41 @@
 # Expo Camera RTMP Publisher
 
-Модуль для React Native/Expo, позволяющий вести RTMP трансляции с камеры мобильного устройства. Поддерживает iOS и Android платформы.
+A React Native/Expo module for RTMP streaming from a mobile device camera. **Currently only iOS platform is supported.**
 
-## Особенности
+## Features
 
-- Потоковое вещание видео по RTMP протоколу
-- Переключение между фронтальной и основной камерой
-- Управление фонариком устройства
-- Настройка параметров трансляции (разрешение, битрейт)
-- Обработка событий начала/остановки трансляции и ошибок
-- Полная интеграция с системой разрешений Expo
+- Video streaming via RTMP protocol
+- Switching between front and back cameras
+- Device flashlight control
+- Stream parameter configuration (resolution, bitrate)
+- Handling broadcasting start/stop events and errors
+- Full integration with Expo permissions system
 
-## Установка
+## Installation
 
-### В управляемых Expo проектах
+### In managed Expo projects
 
 ```bash
 npx expo install expo-camera-rtmp-publisher
 ```
 
-### В bare React Native проектах
+### In bare React Native projects
 
-Убедитесь, что у вас [установлен и настроен пакет `expo`](https://docs.expo.dev/bare/installing-expo-modules/) перед продолжением.
+Make sure you have [installed and configured the `expo` package](https://docs.expo.dev/bare/installing-expo-modules/) before continuing.
 
 ```bash
 npm install expo-camera-rtmp-publisher
 ```
 
-#### Android конфигурация
+#### iOS configuration
 
-Дополнительная конфигурация не требуется.
+Run `npx pod-install` after installing the npm package.
 
-#### iOS конфигурация
+> **Note:** Android support is currently under development.
 
-Выполните `npx pod-install` после установки npm пакета.
+## Usage
 
-## Использование
-
-### Базовый пример
+### Basic example
 
 ```jsx
 import React, { useRef, useState } from 'react';
@@ -61,7 +59,7 @@ export default function App() {
         audioBitrate: '128k',
       });
     } catch (err) {
-      console.error('Ошибка начала трансляции:', err);
+      console.error('Broadcasting start error:', err);
     }
   };
   
@@ -77,7 +75,7 @@ export default function App() {
       />
       
       <Button
-        title={isPublishing ? "Остановить" : "Начать трансляцию"}
+        title={isPublishing ? "Stop" : "Start Broadcasting"}
         onPress={isPublishing ? 
           () => publisherRef.current?.stopPublishing() : 
           startPublishing
@@ -88,9 +86,9 @@ export default function App() {
 }
 ```
 
-### Разрешения
+### Permissions
 
-Перед использованием камеры и микрофона необходимо запросить разрешения:
+Before using the camera and microphone, you need to request permissions:
 
 ```javascript
 import { requestCameraPermissionsAsync, requestMicrophonePermissionsAsync } from 'expo-camera-rtmp-publisher';
@@ -100,7 +98,7 @@ async function requestPermissions() {
   const microphonePermission = await requestMicrophonePermissionsAsync();
   
   if (!cameraPermission.granted || !microphonePermission.granted) {
-    // Обработка отсутствия разрешений
+    // Handle missing permissions
   }
 }
 ```
@@ -109,49 +107,49 @@ async function requestPermissions() {
 
 ### ExpoCameraRtmpPublisherView
 
-#### Свойства
+#### Properties
 
-| Свойство | Тип | Описание |
-|----------|-----|---------|
-| `cameraPosition` | `'front'` \| `'back'` | Позиция камеры (по умолчанию `'front'`) |
-| `onPublishStarted` | `() => void` | Callback, вызываемый при начале трансляции |
-| `onPublishStopped` | `() => void` | Callback, вызываемый при остановке трансляции |
-| `onPublishError` | `(error: string) => void` | Callback, вызываемый при ошибке трансляции |
+| Property | Type | Description |
+|----------|-----|-------------|
+| `cameraPosition` | `'front'` \| `'back'` | Camera position (default is `'front'`) |
+| `onPublishStarted` | `() => void` | Callback invoked when broadcasting starts |
+| `onPublishStopped` | `() => void` | Callback invoked when broadcasting stops |
+| `onPublishError` | `(error: string) => void` | Callback invoked when a broadcasting error occurs |
 
-#### Методы
+#### Methods
 
-| Метод | Параметры | Описание |
-|-------|-----------|---------|
-| `startPublishing` | `(rtmpUrl: string, options?: PublishOptions)` | Начинает RTMP трансляцию |
-| `stopPublishing` | - | Останавливает RTMP трансляцию |
-| `switchCamera` | - | Переключает между фронтальной и основной камерой |
-| `toggleTorch` | `(level: number)` | Включает/выключает фонарик с указанной яркостью |
+| Method | Parameters | Description |
+|--------|------------|-------------|
+| `startPublishing` | `(rtmpUrl: string, options?: PublishOptions)` | Starts RTMP broadcasting |
+| `stopPublishing` | - | Stops RTMP broadcasting |
+| `switchCamera` | - | Switches between front and back cameras |
+| `toggleTorch` | `(level: number)` | Turns on/off the flashlight with specified brightness |
 
-#### Тип PublishOptions
+#### PublishOptions Type
 
-| Свойство | Тип | Описание |
-|----------|-----|---------|
-| `videoWidth` | `number` | Ширина видео в пикселях |
-| `videoHeight` | `number` | Высота видео в пикселях |
-| `videoBitrate` | `string` | Битрейт видео, например `'1M'` |
-| `audioBitrate` | `string` | Битрейт аудио, например `'128k'` |
+| Property | Type | Description |
+|----------|------|-------------|
+| `videoWidth` | `number` | Video width in pixels |
+| `videoHeight` | `number` | Video height in pixels |
+| `videoBitrate` | `string` | Video bitrate, e.g., `'1M'` |
+| `audioBitrate` | `string` | Audio bitrate, e.g., `'128k'` |
 
-### Функции
+### Functions
 
-| Функция | Возвращаемое значение | Описание |
-|---------|----------------------|---------|
-| `requestCameraPermissionsAsync` | `Promise<PermissionResponse>` | Запрашивает разрешение на использование камеры |
-| `requestMicrophonePermissionsAsync` | `Promise<PermissionResponse>` | Запрашивает разрешение на использование микрофона |
-| `getCameraPermissionsAsync` | `Promise<PermissionResponse>` | Проверяет текущее разрешение на использование камеры |
-| `getMicrophonePermissionsAsync` | `Promise<PermissionResponse>` | Проверяет текущее разрешение на использование микрофона |
+| Function | Return Value | Description |
+|----------|--------------|-------------|
+| `requestCameraPermissionsAsync` | `Promise<PermissionResponse>` | Requests permission to use the camera |
+| `requestMicrophonePermissionsAsync` | `Promise<PermissionResponse>` | Requests permission to use the microphone |
+| `getCameraPermissionsAsync` | `Promise<PermissionResponse>` | Checks current camera permission status |
+| `getMicrophonePermissionsAsync` | `Promise<PermissionResponse>` | Checks current microphone permission status |
 
-#### Тип PermissionResponse
+#### PermissionResponse Type
 
-| Свойство | Тип | Описание |
-|----------|-----|---------|
-| `status` | `string` | Статус разрешения (`'granted'` или `'denied'`) |
-| `granted` | `boolean` | Флаг, указывающий на наличие разрешения |
+| Property | Type | Description |
+|----------|------|-------------|
+| `status` | `string` | Permission status (`'granted'` or `'denied'`) |
+| `granted` | `boolean` | Flag indicating whether permission is granted |
 
-## Лицензия
+## License
 
 MIT
