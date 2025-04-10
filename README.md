@@ -103,6 +103,30 @@ async function requestPermissions() {
 }
 ```
 
+### Required Configuration Files
+
+For the module to work properly, you need to add the following configurations to your project files:
+
+#### iOS (Info.plist)
+
+Add the following to your `ios/Info.plist` file to request camera and microphone permissions:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>The application requests access to the camera for video broadcasting</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>The application requests access to the microphone for audio broadcasting</string>
+```
+
+#### Android (AndroidManifest.xml)
+
+Add the following permissions to your `android/src/main/AndroidManifest.xml` file:
+
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+```
+
 ## API
 
 ### ExpoCameraRtmpPublisherView

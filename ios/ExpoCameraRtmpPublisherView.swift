@@ -40,13 +40,6 @@ class ExpoCameraRtmpPublisherView: ExpoView, FFLiveKitDelegate {
     setupCameraPreview()
   }
   
-  // override func layoutSubviews() {
-  //   super.layoutSubviews()
-    
-  //   // Check autostart when view is laid out
-  //   checkAutostart()
-  // }
-  
   private func setupCameraPreview() {
     // Initialize camera source with the specified position
       cameraSource = CameraSource(position: cameraPosition)
@@ -54,13 +47,6 @@ class ExpoCameraRtmpPublisherView: ExpoView, FFLiveKitDelegate {
       // Start camera preview
       cameraSource?.startPreview(previewView: self)
       print("Camera preview initialized with position: \(cameraPosition == .front ? "front" : "back")")
-  }
-  
-  
-  private func checkAutostart() {
-    // if autostart, let rtmpUrl = rtmpUrl, !isPublishing, module != nil {
-    //   module?.startPublishingFromView(rtmpUrl: rtmpUrl, cameraSource: cameraSource)
-    // }
   }
   
   private func updateCameraPosition() {
@@ -85,9 +71,9 @@ class ExpoCameraRtmpPublisherView: ExpoView, FFLiveKitDelegate {
   }
   
   public func startPublishing(rtmpUrl: String, options: PublishOptions = PublishOptions()) throws {
-    // Сохраняем ссылку на используемый cameraSource
+    // Save reference to the current camera source
     
-    // Создаем и настраиваем microphoneSource
+    // Create and configure microphoneSource
     do {
       microphoneSource = try MicrophoneSource()
     } catch {
@@ -119,17 +105,9 @@ class ExpoCameraRtmpPublisherView: ExpoView, FFLiveKitDelegate {
     // Start publishing
     try ffLiveKit?.publish()
     
-    // Обновляем состояние
+    // Update the state
     isPublishing = true
     
-    // Обновляем состояние всех view, которые используют данный cameraSource
-    // publisherViews.forEach { view in
-    //   if view.getCameraSource() === cameraSource {
-    //     view.setPublishingState(true)
-    //   }
-    // }
-    
-    // Отправляем глобальное событие об изменении состояния
     onPublishStarted([:])
   }
   
@@ -137,14 +115,6 @@ class ExpoCameraRtmpPublisherView: ExpoView, FFLiveKitDelegate {
     ffLiveKit?.stop()
     isPublishing = false
     
-    // Обновляем состояние всех view
-    // publisherViews.forEach { view in
-    //   if view.getCameraSource() === self.cameraSource {
-    //     view.setPublishingState(false)
-    //   }
-    // }
-    
-    // Отправляем глобальное событие
     onPublishStopped([:])
   }
   
@@ -167,21 +137,7 @@ class ExpoCameraRtmpPublisherView: ExpoView, FFLiveKitDelegate {
   }
 
    public func _FFLiveKit(didChange status: RecordingState) {
-    // switch status {
-    // case .Recording:
-    //   // Обновляем состояние всех view, которые используют данный cameraSource
-    //   onPublishStarted([:])
-    // case .Normal:
-    //   isPublishing = false
-    //   // Обновляем состояние всех view
-    //   // onPublishStopped([:])
-    // case .RequestStop:
-    //   // Обновляем состояние всех view и отправляем уведомление об ошибке
-    //   self.stopPublishing()
-    // case .RequestRecording:
-    //   // Processing, waiting for recording to start
-    //   break
-    // }
+    
   }
   
   public func _FFLiveKit(onStats stats: FFStat) {
@@ -189,16 +145,10 @@ class ExpoCameraRtmpPublisherView: ExpoView, FFLiveKitDelegate {
   }
   
   public func _FFLiveKit(onError error: String) {
-    // Обновляем состояние всех view и отправляем уведомление об ошибке
 
     isPublishing = false
     
     onPublishError(["error": error])
   }
   
-  // deinit {
-  //   if let module = module {
-  //     module.unregisterView(self)
-  //   }
-  // }
 }

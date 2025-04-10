@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Приложение запрашивает доступ к камере для трансляции видео</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Приложение запрашивает доступ к микрофону для трансляции аудио</string>
-</dict>
+	<dict>
+		<key>NSCameraUsageDescription</key>
+		<string>The application requests access to the camera for video broadcasting</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>The application requests access to the microphone for audio broadcasting</string>
+	</dict>
 </plist> 
