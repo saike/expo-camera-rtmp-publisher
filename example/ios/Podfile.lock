@@ -7,8 +7,14 @@ PODS:
     - ExpoModulesCore
   - ExpoAsset (11.0.5):
     - ExpoModulesCore
+  - ExpoCamera (16.0.18):
+    - ExpoModulesCore
+    - ZXingObjC/OneD
+    - ZXingObjC/PDF417
   - ExpoCameraRtmpPublisher (0.1.0):
     - ExpoModulesCore
+    - FFLivekit
+    - ffmpeg-kit-srt
   - ExpoFileSystem (18.0.12):
     - ExpoModulesCore
   - ExpoFont (13.0.4):
@@ -40,6 +46,9 @@ PODS:
     - Yoga
   - fast_float (6.1.4)
   - FBLazyVector (0.76.9)
+  - FFLivekit (0.1.0):
+    - ffmpeg-kit-srt
+  - ffmpeg-kit-srt (2.0.0)
   - fmt (11.0.2)
   - glog (0.3.5)
   - hermes-engine (0.76.9):
@@ -1597,6 +1606,11 @@ PODS:
     - React-utils (= 0.76.9)
   - SocketRocket (0.7.1)
   - Yoga (0.0.0)
+  - ZXingObjC/Core (3.6.9)
+  - ZXingObjC/OneD (3.6.9):
+    - ZXingObjC/Core
+  - ZXingObjC/PDF417 (3.6.9):
+    - ZXingObjC/Core
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
@@ -1604,6 +1618,7 @@ DEPENDENCIES:
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoCamera (from `../node_modules/expo-camera/ios`)
   - ExpoCameraRtmpPublisher (from `../../ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
@@ -1676,7 +1691,10 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - FFLivekit
+    - ffmpeg-kit-srt
     - SocketRocket
+    - ZXingObjC
 
 EXTERNAL SOURCES:
   boost:
@@ -1689,6 +1707,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoCamera:
+    :path: "../node_modules/expo-camera/ios"
   ExpoCameraRtmpPublisher:
     :path: "../../ios"
   ExpoFileSystem:
@@ -1831,13 +1851,16 @@ SPEC CHECKSUMS:
   EXConstants: fcfc75800824ac2d5c592b5bc74130bad17b146b
   Expo: 75e002fc29a18a72aa3db967b41b29c2b206875d
   ExpoAsset: 48386d40d53a8c1738929b3ed509bcad595b5516
-  ExpoCameraRtmpPublisher: bafe4b3d54ea2952fa7abf5c8377f5d4cb9c6f27
+  ExpoCamera: 0a3e78de7b1ca8c438ee6784fa6f22c5b1b36966
+  ExpoCameraRtmpPublisher: 6d1f3bc14aacb2e7cd844c916ec5436ab8a6e545
   ExpoFileSystem: 42d363d3b96f9afab980dcef60d5657a4443c655
   ExpoFont: f354e926f8feae5e831ec8087f36652b44a0b188
   ExpoKeepAwake: b0171a73665bfcefcfcc311742a72a956e6aa680
   ExpoModulesCore: c25d77625038b1968ea1afefc719862c0d8dd993
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 7605ea4810e0e10ae4815292433c09bf4324ba45
+  FFLivekit: 86d749f291cd8d688de5ededa7c5ef14b04b4463
+  ffmpeg-kit-srt: 21d77ca2a936c9cc41119832e3bce0eca80c425b
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   hermes-engine: 9e868dc7be781364296d6ee2f56d0c1a9ef0bb11
@@ -1899,6 +1922,7 @@ SPEC CHECKSUMS:
   ReactCommon: 300d8d9c5cb1a6cd79a67cf5d8f91e4d477195f9
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
+  ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
 PODFILE CHECKSUM: 0e29a636a5a84a86234b65fd8d148eabdd4a8d11
 

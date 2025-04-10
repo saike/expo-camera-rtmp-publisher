@@ -21,18 +21,20 @@
     "expo-camera-rtmp-publisher",
     "ExpoCameraRtmpPublisher"
   ],
-  "repository": "https://docs.expo.dev/modules/native-module-tutorial/",
+  "repository": "https://github.com/saike/expo-camera-rtmp-publisher",
   "bugs": {
-    "url": "https://docs.expo.dev/modules/native-module-tutorial//issues"
+    "url": "https://github.com/saike/expo-camera-rtmp-publisher/issues"
   },
   "author": "Saike <saike.dev@gmail.com> (saike)",
   "license": "MIT",
-  "homepage": "https://docs.expo.dev/modules/native-module-tutorial/#readme",
-  "dependencies": {},
+  "homepage": "https://github.com/saike/expo-camera-rtmp-publisher/#readme",
+  "dependencies": {
+    "expo-camera": "^16.0.18"
+  },
   "devDependencies": {
     "@types/react": "~18.3.12",
-    "expo-module-scripts": "^4.0.4",
     "expo": "~52.0.0",
+    "expo-module-scripts": "^4.0.4",
     "react-native": "0.76.0"
   },
   "peerDependencies": {

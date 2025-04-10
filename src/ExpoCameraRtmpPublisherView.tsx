@@ -1,11 +1,39 @@
-import { requireNativeView } from 'expo';
-import * as React from 'react';
+import { requireNativeViewManager } from "expo-modules-core";
+import * as React from "react";
+import { ViewProps, StyleProp, ViewStyle } from "react-native";
 
-import { ExpoCameraRtmpPublisherViewProps } from './ExpoCameraRtmpPublisher.types';
-
-const NativeView: React.ComponentType<ExpoCameraRtmpPublisherViewProps> =
-  requireNativeView('ExpoCameraRtmpPublisher');
-
-export default function ExpoCameraRtmpPublisherView(props: ExpoCameraRtmpPublisherViewProps) {
-  return <NativeView {...props} />;
+export type PublishOptions = {
+  videoWidth?: number;
+  videoHeight?: number;
+  videoBitrate?: string;
+  audioBitrate?: string;
 }
+
+export type Props = ViewProps & {
+  style?: StyleProp<ViewStyle>;
+  rtmpUrl?: string;
+  autostart?: boolean;
+  cameraPosition?: "front" | "back";
+  onPublishStarted?: () => void;
+  onPublishStopped?: () => void;
+  onPublishError?: (error: string) => void;
+  ref?: React.ForwardedRef<IExpoCameraRtmpPublisherForward>;
+};
+
+export interface IExpoCameraRtmpPublisherForward {
+  startPublishing(rtmpUrl: string, options?: PublishOptions): Promise<void>;
+  stopPublishing(): Promise<void>;
+  switchCamera(): Promise<void>;
+  toggleTorch(level: number): Promise<void>;
+  onPublishStarted(): void;
+  onPublishStopped(): void;
+  onPublishError(error: string): void;
+}
+
+const NativeView: React.ComponentType<Props> = requireNativeViewManager(
+  "ExpoCameraRtmpPublisher",
+);
+
+export default React.forwardRef<IExpoCameraRtmpPublisherForward, Props>(function ExpoCameraRtmpPublisherView(props: Props, ref) {
+  return <NativeView {...props} ref={ref} />;
+});

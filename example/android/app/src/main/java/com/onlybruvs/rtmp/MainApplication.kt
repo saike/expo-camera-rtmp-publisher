@@ -1,4 +1,4 @@
-package expo.modules.camerartmppublisher.example
+package com.onlybruvs.rtmp
 
 import android.app.Application
 import android.content.res.Configuration

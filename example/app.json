@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "com.onlybruvs.rtmp",
     "name": "expo-camera-rtmp-publisher-example",
     "slug": "expo-camera-rtmp-publisher-example",
     "version": "1.0.0",
@@ -7,6 +8,16 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "plugins:": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -14,14 +25,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "expo.modules.camerartmppublisher.example"
+      "bundleIdentifier": "com.onlybruvs.rtmp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "expo.modules.camerartmppublisher.example"
+      "package": "com.onlybruvs.rtmp"
     },
     "web": {
       "favicon": "./assets/favicon.png"

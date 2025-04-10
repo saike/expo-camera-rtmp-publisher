@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'expo.modules.camerartmppublisher.example'
+    namespace 'com.onlybruvs.rtmp'
     defaultConfig {
-        applicationId 'expo.modules.camerartmppublisher.example'
+        applicationId 'com.onlybruvs.rtmp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
