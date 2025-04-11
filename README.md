@@ -54,6 +54,7 @@ import {
 
 export default function App() {
   const [isPublishing, setIsPublishing] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const publisherRef = useRef(null);
 
   const startPublishing = async () => {
@@ -80,17 +81,20 @@ export default function App() {
         style={{ flex: 1 }}
         cameraPosition="front"
         muted={false}
+        onReady={() => setCameraReady(true)}
         onPublishStarted={() => setIsPublishing(true)}
         onPublishStopped={() => setIsPublishing(false)}
         onPublishError={(error) => console.error(error)}
       />
 
-      <Button
-        title={isPublishing ? "Stop Broadcasting" : "Start Broadcasting"}
-        onPress={isPublishing
-          ? () => publisherRef.current?.stopPublishing()
-          : startPublishing}
-      />
+      {cameraReady && (
+        <Button
+          title={isPublishing ? "Stop Broadcasting" : "Start Broadcasting"}
+          onPress={isPublishing
+            ? () => publisherRef.current?.stopPublishing()
+            : startPublishing}
+        />
+      )}
     </View>
   );
 }
@@ -140,6 +144,7 @@ permissions:
 | ------------------ | ------------------------- | ----------------------------------------- |
 | `cameraPosition`   | `'front'` \| `'back'`     | Camera position (default: `'front'`)      |
 | `muted`            | `boolean`                 | Audio muting state (default: `false`)     |
+| `onReady`          | `() => void`              | Callback when the camera is ready         |
 | `onPublishStarted` | `() => void`              | Callback when broadcasting starts         |
 | `onPublishStopped` | `() => void`              | Callback when broadcasting stops          |
 | `onPublishError`   | `(error: string) => void` | Callback when a broadcasting error occurs |

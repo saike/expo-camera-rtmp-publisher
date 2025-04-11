@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Button, Text, SafeAreaView, StatusBar, TextInput, Platform, Alert } from 'react-native';
+import { StyleSheet, View, Button, Text, SafeAreaView, StatusBar, TextInput, Platform, Alert, ActivityIndicator } from 'react-native';
 import {
   ExpoCameraRtmpPublisherView,
   requestCameraPermissionsAsync,
@@ -17,6 +17,7 @@ export default function App() {
   const [hasMicrophonePermission, setHasMicrophonePermission] = useState<boolean | null>(null);
   const publisherView = useRef<IExpoCameraRtmpPublisherForward>(null);
   const [muted, setMuted] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
 
   useEffect(() => {
     // Запрос разрешений на камеру и микрофон
@@ -37,8 +38,8 @@ export default function App() {
       await publisherView.current?.startPublishing(config.url, config.streamKey, {
         videoWidth: 720,
         videoHeight: 1280,
-        videoBitrate: '1000000',
-        audioBitrate: '128000',
+        videoBitrate: 1_000_000,
+        audioBitrate: 128_000,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start publishing');
@@ -120,6 +121,7 @@ export default function App() {
       <StatusBar barStyle="light-content" />
 
       <View style={styles.cameraContainer}>
+
         <ExpoCameraRtmpPublisherView
           ref={publisherView}
           style={styles.camera}
@@ -128,7 +130,18 @@ export default function App() {
           onPublishStarted={() => setIsPublishing(true)}
           onPublishStopped={() => setIsPublishing(false)}
           onPublishError={(error: string) => setError(error)}
+          onReady={() => {
+            setCameraReady(true)
+            console.log('Camera is ready');
+          }}
         />
+        {
+          !cameraReady && (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          )
+        }
       </View>
 
       <View style={styles.controls}>
@@ -173,6 +186,7 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     flex: 1,
+    position: 'relative',
   },
   camera: {
     flex: 1,

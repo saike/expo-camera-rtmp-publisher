@@ -20,7 +20,7 @@ public class ExpoCameraRtmpPublisherModule: Module {
         view.muted = muted ?? false
       }
       
-      Events("onPublishStarted", "onPublishStopped", "onPublishError")
+      Events("onPublishStarted", "onPublishStopped", "onPublishError", "onReady")
 
       AsyncFunction("startPublishing") { (view: ExpoCameraRtmpPublisherView, url: String, name: String, options: [String: Any]) in
         let publishOptions = PublishOptions(

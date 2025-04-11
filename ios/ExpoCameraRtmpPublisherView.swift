@@ -33,6 +33,7 @@ class ExpoCameraRtmpPublisherView: ExpoView {
     let onPublishStarted = EventDispatcher()
     let onPublishStopped = EventDispatcher()
     let onPublishError = EventDispatcher()
+    let onReady = EventDispatcher()
 
     var cameraPosition: AVCaptureDevice.Position = .front {
         didSet {
@@ -60,10 +61,13 @@ class ExpoCameraRtmpPublisherView: ExpoView {
         setupAudioSession()
         setupStream()
         
-        // Add HKView as subview
+        // Add HKView as subview and configure its layout
         addSubview(hkView)
         hkView.frame = bounds
-        hkView.autoresizingMask = [UIView.AutoresizingMask.flexibleWidth, UIView.AutoresizingMask.flexibleHeight]
+        hkView.contentMode = .scaleAspectFill
+        hkView.videoGravity = .resizeAspectFill
+        hkView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
     }
 
     private func setupAudioSession() {
@@ -114,6 +118,9 @@ class ExpoCameraRtmpPublisherView: ExpoView {
                         }
                     }
                 }
+
+                onReady([:])
+
             } catch {
                 print("Failed to setup stream:", error)
             }

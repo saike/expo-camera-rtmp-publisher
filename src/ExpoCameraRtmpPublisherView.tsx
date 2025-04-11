@@ -5,8 +5,8 @@ import { ViewProps, StyleProp, ViewStyle } from "react-native";
 export type PublishOptions = {
   videoWidth?: number;
   videoHeight?: number;
-  videoBitrate?: string;
-  audioBitrate?: string;
+  videoBitrate?: number;
+  audioBitrate?: number;
 }
 
 export type Props = ViewProps & {
@@ -16,6 +16,7 @@ export type Props = ViewProps & {
   onPublishStarted?: () => void;
   onPublishStopped?: () => void;
   onPublishError?: (error: string) => void;
+  onReady?: () => void;
   ref?: React.ForwardedRef<IExpoCameraRtmpPublisherForward>;
 };
 
