@@ -12,10 +12,11 @@ import { IExpoCameraRtmpPublisherForward } from 'expo-camera-rtmp-publisher/Expo
 export default function App() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rtmpUrl, setRtmpUrl] = useState(config.rtmpUrl);
+  const [rtmpUrl, setRtmpUrl] = useState(`${config.url}${config.streamKey}`);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [hasMicrophonePermission, setHasMicrophonePermission] = useState<boolean | null>(null);
   const publisherView = useRef<IExpoCameraRtmpPublisherForward>(null);
+  const [muted, setMuted] = useState(false);
 
   useEffect(() => {
     // Запрос разрешений на камеру и микрофон
@@ -33,11 +34,11 @@ export default function App() {
 
   const handleStartPublishing = async () => {
     try {
-      await publisherView.current?.startPublishing(rtmpUrl, {
+      await publisherView.current?.startPublishing(config.url, config.streamKey, {
         videoWidth: 720,
         videoHeight: 1280,
-        videoBitrate: '1M',
-        audioBitrate: '128k',
+        videoBitrate: '1000000',
+        audioBitrate: '128000',
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start publishing');
@@ -56,6 +57,7 @@ export default function App() {
     try {
       await publisherView.current?.switchCamera();
     } catch (err) {
+      console.log(error)
       setError(err instanceof Error ? err.message : 'Failed to switch camera');
     }
   };
@@ -67,6 +69,10 @@ export default function App() {
       setError(err instanceof Error ? err.message : 'Failed to toggle torch');
     }
   };
+
+  const handleMute = () => {
+    setMuted(!muted);
+  }
 
   // Если разрешения еще загружаются
   if (hasCameraPermission === null || hasMicrophonePermission === null) {
@@ -117,6 +123,7 @@ export default function App() {
         <ExpoCameraRtmpPublisherView
           ref={publisherView}
           style={styles.camera}
+          muted={muted}
           cameraPosition="front"
           onPublishStarted={() => setIsPublishing(true)}
           onPublishStopped={() => setIsPublishing(false)}
@@ -144,6 +151,7 @@ export default function App() {
         <View style={styles.buttonRow}>
           <Button title="Переключить камеру" onPress={handleSwitchCamera} />
           <Button title="Вкл/выкл фонарик" onPress={handleToggleTorch} />
+          <Button title="Вкл/выкл Микрофон" color={!muted ? "#e74c3c" : "#2ecc71"} onPress={handleMute} />
         </View>
 
         {error && (
@@ -191,6 +199,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    flexWrap: 'wrap',
     marginBottom: 20,
   },
   errorText: {

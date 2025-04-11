@@ -1,154 +1,237 @@
 import ExpoModulesCore
 import AVFoundation
-import FFLivekit
+import HaishinKit
+import VideoToolbox
+import UIKit
 
 public struct PublishOptions {
-  var videoWidth: Int = 1080
-  var videoHeight: Int = 1920
-  var videoBitrate: String = "2M"
-  var audioBitrate: String = "128k"
-  
-  public init(videoWidth: Int = 1080, videoHeight: Int = 1920, videoBitrate: String = "2M", audioBitrate: String = "128k") {
-    self.videoWidth = videoWidth
-    self.videoHeight = videoHeight
-    self.videoBitrate = videoBitrate
-    self.audioBitrate = audioBitrate
-  }
+    var videoWidth: Int32 = 1080
+    var videoHeight: Int32 = 1920
+    var videoBitrate: Int32 = 2_000_000
+    var audioBitrate: Int32 = 128_000
+    
+    public init(videoWidth: Int32 = 1080, videoHeight: Int32 = 1920, videoBitrate: Int32 = 2_000_000, audioBitrate: Int32 = 128_000) {
+        self.videoWidth = videoWidth
+        self.videoHeight = videoHeight
+        self.videoBitrate = videoBitrate
+        self.audioBitrate = audioBitrate
+    }
 }
 
-class ExpoCameraRtmpPublisherView: ExpoView, FFLiveKitDelegate {
-  
-  weak var module: ExpoCameraRtmpPublisherModule?
+class ExpoCameraRtmpPublisherView: ExpoView {
+    private let mixer = MediaMixer()
+    private let rtmpStream: RTMPStream
+    private let rtmpConnection = RTMPConnection()
+    private let hkView: MTHKView
 
-  private var ffLiveKit: FFLiveKit?
-  private var cameraSource: CameraSource?
-  private var microphoneSource: MicrophoneSource?
-  private var isPublishing = false
-  
+    private var isAudioConfigured = false
+    private var isVideoConfigured = false
+    private var isPublishing = false
+    private var lastCamera: AVCaptureDevice?
+    private var currentPosition: AVCaptureDevice.Position = .back
 
-  var cameraPosition: AVCaptureDevice.Position = .front
-  
-  // Event dispatchers
-  let onPublishStarted = EventDispatcher()
-  let onPublishStopped = EventDispatcher()
-  let onPublishError = EventDispatcher()
+    let onPublishStarted = EventDispatcher()
+    let onPublishStopped = EventDispatcher()
+    let onPublishError = EventDispatcher()
 
-  required init(appContext: AppContext? = nil) {
-    super.init(appContext: appContext)
-    
-    // Initialize camera source
-    setupCameraPreview()
-  }
-  
-  private func setupCameraPreview() {
-    // Initialize camera source with the specified position
-      cameraSource = CameraSource(position: cameraPosition)
-    
-      // Start camera preview
-      cameraSource?.startPreview(previewView: self)
-      print("Camera preview initialized with position: \(cameraPosition == .front ? "front" : "back")")
-  }
-  
-  private func updateCameraPosition() {
-    if let cameraSource = cameraSource {
-      cameraSource.switchCamera()
-    } else {
-      setupCameraPreview()
+    var cameraPosition: AVCaptureDevice.Position = .front {
+        didSet {
+            Task {
+                await attachCamera(cameraPosition)
+            }
+        }
     }
-  }
-  
-  func setPublishingState(_ isPublishing: Bool) {
-    self.isPublishing = isPublishing
-    if isPublishing {
-      onPublishStarted([:])
-    } else {
-      onPublishStopped([:])
-    }
-  }
-  
-  func notifyError(_ error: String) {
-    onPublishError(["error": error])
-  }
-  
-  public func startPublishing(rtmpUrl: String, options: PublishOptions = PublishOptions()) throws {
-    // Save reference to the current camera source
-    
-    // Create and configure microphoneSource
-    do {
-      microphoneSource = try MicrophoneSource()
-    } catch {
-      onPublishError(["error": "Failed to initialize microphone: \(error.localizedDescription)"])
-      throw error
-    }
-    
-    // Configure FFLiveKit
-    ffLiveKit = FFLiveKit(options: [
-      .outputVideoSize((options.videoWidth, options.videoHeight)),
-      .outputVideoBitrate(options.videoBitrate),
-      .outputAudioBitrate(options.audioBitrate)
-    ])
-    
-    // Create RTMP connection
-    let rtmpConnection = try RTMPConnection(baseUrl: rtmpUrl)
-    
-    // Connect to RTMP server
-    try ffLiveKit?.connect(connection: rtmpConnection)
-    
-    // Add sources
-    if let camera = cameraSource, let microphone = microphoneSource {
-      ffLiveKit?.addSources(sources: [camera, microphone])
-    }
-    
-    // Prepare FFLiveKit
-    ffLiveKit?.prepare(delegate: self)
-    
-    // Start publishing
-    try ffLiveKit?.publish()
-    
-    // Update the state
-    isPublishing = true
-    
-    onPublishStarted([:])
-  }
-  
-  public func stopPublishing() {
-    ffLiveKit?.stop()
-    isPublishing = false
-    
-    onPublishStopped([:])
-  }
-  
-  public func switchCamera() {
-    cameraSource?.switchCamera()
-  }
-  
-  public func toggleTorch(level: Float = 1.0) {
-    cameraSource?.toggleTorch(level: level)
-  }
 
-  public func setCameraPosition(position: AVCaptureDevice.Position) {
-    // Проверяем, изменилась ли позиция камеры
-    print("Setting camera position to: \(position == .front ? "front" : "back") from \(self.cameraPosition == .front ? "front" : "back")")
-    if self.cameraPosition != position {
-      print("Switching camera position")
-      cameraSource?.switchCamera()
-      self.cameraPosition = position
+    var muted: Bool = false {
+        didSet {
+            setAudioMuted(muted)
+        }
     }
-  }
 
-   public func _FFLiveKit(didChange status: RecordingState) {
-    
-  }
-  
-  public func _FFLiveKit(onStats stats: FFStat) {
-    // Handle stats if needed
-  }
-  
-  public func _FFLiveKit(onError error: String) {
+    func setCameraPosition(position: AVCaptureDevice.Position) {
+        self.cameraPosition = position
+    }
 
-    isPublishing = false
-    
-    onPublishError(["error": error])
-  }
-  
+    required init(appContext: AppContext? = nil) {
+        self.rtmpStream = RTMPStream(connection: rtmpConnection)
+        self.hkView = MTHKView(frame: .zero)
+        super.init(appContext: appContext)
+        
+        setupAudioSession()
+        setupStream()
+        
+        // Add HKView as subview
+        addSubview(hkView)
+        hkView.frame = bounds
+        hkView.autoresizingMask = [UIView.AutoresizingMask.flexibleWidth, UIView.AutoresizingMask.flexibleHeight]
+    }
+
+    private func setupAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+            try session.setActive(true)
+        } catch {
+            print("Failed to setup audio session:", error)
+        }
+    }
+
+    private func setupStream() {
+        Task {
+            do {
+                // Configure basic mixer settings
+                try await mixer.setFrameRate(30)
+                try await mixer.setSessionPreset(.medium)
+                
+                // Configure stream outputs
+                try await mixer.addOutput(rtmpStream)
+                try await mixer.addOutput(hkView)
+                
+                // Initial camera & audio setup
+                await attachCamera(cameraPosition)
+                await attachAudio()
+                
+                // Setup connection event listeners
+                Task {
+                    for await status in rtmpConnection.status {
+                        switch status.code {
+                        case RTMPConnection.Code.connectSuccess.rawValue:
+                            print("RTMP Connected")
+                            onPublishStarted([:])
+                        case RTMPConnection.Code.connectClosed.rawValue:
+                            print("RTMP Disconnected")
+                            onPublishStopped([:])
+
+                        case RTMPConnection.Code.connectFailed.rawValue:
+                            print("RTMP Connection Failed:", status.description)
+                            onPublishError([
+                                "error": status.description,
+                                "code": status.code
+                            ])
+
+                        default:
+                            print("RTMP Status:", status.code)
+                        }
+                    }
+                }
+            } catch {
+                print("Failed to setup stream:", error)
+            }
+        }
+    }
+
+    private func attachAudio() async {
+        guard let audioDevice = AVCaptureDevice.default(for: .audio) else {
+            print("No audio device available")
+            return
+        }
+        
+        do {
+            try await mixer.attachAudio(audioDevice, track: 0)
+        } catch {
+            print("Failed to attach audio device:", error)
+        }
+    }
+
+    private func attachCamera(_ position: AVCaptureDevice.Position) async {
+        guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else {
+            print("No camera available for position:", position)
+            return
+        }
+        self.lastCamera = camera
+        
+        do {
+            try await mixer.attachVideo(camera, track: 0) { videoUnit in
+                videoUnit.isVideoMirrored = position == .front
+                videoUnit.preferredVideoStabilizationMode = .standard
+            }
+        } catch {
+            print("Failed to attach camera:", error)
+        }
+    }
+
+    public func switchCamera() {
+        Task {
+            print("Switching camera")
+            let position: AVCaptureDevice.Position = currentPosition == .back ? .front : .back
+            if let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) {
+                await attachCamera(position)
+                currentPosition = position
+            }
+        }
+    }
+
+    public func toggleTorch(level: Float) {
+        Task {
+            guard let camera = lastCamera else { return }
+            
+            do {
+                try camera.lockForConfiguration()
+                if camera.hasTorch {
+                    if camera.torchMode == .off {
+                        try camera.setTorchModeOn(level: level)
+                    } else {
+                        camera.torchMode = .off
+                    }
+                }
+                camera.unlockForConfiguration()
+            } catch {
+                print("Failed to toggle torch:", error)
+                throw error
+            }
+        }
+    }
+
+    private func setAudioMuted(_ muted: Bool) {
+        Task {
+            var settings = mixer.audioMixerSettings
+            settings.tracks[0] = AudioMixerTrackSettings(isMuted: muted)
+            mixer.setAudioMixerSettings(settings)
+        }
+    }
+
+    public func startPublishing(url: String, name: String, options: PublishOptions) {
+        guard !isPublishing else { return }
+        
+        Task {
+            do {
+                // Configure video settings
+                let videoSettings = VideoCodecSettings(
+                    videoSize: CGSize(width: CGFloat(options.videoWidth), height: CGFloat(options.videoHeight)),
+                    bitRate: Int(options.videoBitrate),
+                    scalingMode: .trim,
+                    maxKeyFrameIntervalDuration: 2
+                )
+                await rtmpStream.setVideoSettings(videoSettings)
+                
+                // Configure audio settings
+                let audioSettings = AudioCodecSettings(
+                    bitRate: Int(options.audioBitrate)
+                )
+                await rtmpStream.setAudioSettings(audioSettings)
+                
+                // Connect and publish
+                try await rtmpConnection.connect(url)
+                try await rtmpStream.publish(name)
+                
+                isPublishing = true
+            } catch {
+                print("Failed to start publishing:", error)
+            }
+        }
+    }
+
+    public func stopPublishing() {
+        guard isPublishing else { return }
+        
+        Task {
+            do {
+                try await rtmpStream.close()
+                try await rtmpConnection.close()
+                isPublishing = false
+            } catch {
+                print("Failed to stop publishing:", error)
+            }
+        }
+    }
 }

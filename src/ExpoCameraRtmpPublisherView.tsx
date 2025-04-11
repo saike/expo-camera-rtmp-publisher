@@ -11,8 +11,7 @@ export type PublishOptions = {
 
 export type Props = ViewProps & {
   style?: StyleProp<ViewStyle>;
-  rtmpUrl?: string;
-  autostart?: boolean;
+  muted?: boolean;
   cameraPosition?: "front" | "back";
   onPublishStarted?: () => void;
   onPublishStopped?: () => void;
@@ -21,7 +20,7 @@ export type Props = ViewProps & {
 };
 
 export interface IExpoCameraRtmpPublisherForward {
-  startPublishing(rtmpUrl: string, options?: PublishOptions): Promise<void>;
+  startPublishing(url: string, name: string, options?: PublishOptions): Promise<void>;
   stopPublishing(): Promise<void>;
   switchCamera(): Promise<void>;
   toggleTorch(level: number): Promise<void>;

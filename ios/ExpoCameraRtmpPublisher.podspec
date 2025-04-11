@@ -17,9 +17,9 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
   
-  # Add dependency for FFLivekit
-  s.dependency 'FFLivekit'
+  # Replace dependency for FFLivekit with HaishinKit
   s.dependency 'ffmpeg-kit-srt'
+  s.dependency 'HaishinKit'
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {

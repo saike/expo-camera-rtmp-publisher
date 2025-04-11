@@ -1,10 +1,9 @@
 import ExpoModulesCore
 import AVFoundation
-import FFLivekit
+import HaishinKit
 
 public class ExpoCameraRtmpPublisherModule: Module {
 
-  
   public func definition() -> ModuleDefinition {
 
     Name("ExpoCameraRtmpPublisher")
@@ -13,46 +12,37 @@ public class ExpoCameraRtmpPublisherModule: Module {
       
       Prop("cameraPosition") { (view: ExpoCameraRtmpPublisherView, position: String) in
         let cameraPos = position == "front" ? AVCaptureDevice.Position.front : AVCaptureDevice.Position.back
-        view.setCameraPosition(position: cameraPos)
+        view.cameraPosition = cameraPos
         print("Camera position in prop: \(position)")
+      }
+
+      Prop("muted") { (view: ExpoCameraRtmpPublisherView, muted: Bool?) in
+        view.muted = muted ?? false
       }
       
       Events("onPublishStarted", "onPublishStopped", "onPublishError")
 
-      AsyncFunction("startPublishing") { (view: ExpoCameraRtmpPublisherView, rtmpUrl: String, options: [String: Any]?) in
-        var publishOptions = PublishOptions()
-        
-        if let options = options {
-          if let videoWidth = options["videoWidth"] as? Int {
-            publishOptions.videoWidth = videoWidth
-          }
-          
-          if let videoHeight = options["videoHeight"] as? Int {
-            publishOptions.videoHeight = videoHeight
-          }
-          
-          if let videoBitrate = options["videoBitrate"] as? String {
-            publishOptions.videoBitrate = videoBitrate
-          }
-          
-          if let audioBitrate = options["audioBitrate"] as? String {
-            publishOptions.audioBitrate = audioBitrate
-          }
-        }
-        
-        try view.startPublishing(rtmpUrl: rtmpUrl, options: publishOptions)
+      AsyncFunction("startPublishing") { (view: ExpoCameraRtmpPublisherView, url: String, name: String, options: [String: Any]) in
+        let publishOptions = PublishOptions(
+          videoWidth: options["videoWidth"] as? Int32 ?? 1080,
+          videoHeight: options["videoHeight"] as? Int32 ?? 1920,
+          videoBitrate: options["videoBitrate"] as? Int32 ?? 2_000_000,
+          audioBitrate: options["audioBitrate"] as? Int32 ?? 128_000
+        )
+        view.startPublishing(url: url, name: name, options: publishOptions)
       }
 
       AsyncFunction("stopPublishing") { (view: ExpoCameraRtmpPublisherView) in
-        try view.stopPublishing()
+        view.stopPublishing()
       }
 
       AsyncFunction("switchCamera") { (view: ExpoCameraRtmpPublisherView) in
-        try view.switchCamera()
+        view.switchCamera()
       }
 
-      AsyncFunction("toggleTorch") { (view: ExpoCameraRtmpPublisherView, level: Float) in
-        try view.toggleTorch(level: level)
+      AsyncFunction("toggleTorch") { (view: ExpoCameraRtmpPublisherView, level: Float, promise: Promise) in
+        view.toggleTorch(level: level)
+
       }
     }
 
@@ -75,8 +65,7 @@ public class ExpoCameraRtmpPublisherModule: Module {
       return try self.getMicrophonePermissionsAsync()
     }
   }
-  
-  
+
   // MARK: - Permissions methods
   
   private func requestCameraPermissionsAsync() throws -> [String: Any] {
@@ -88,7 +77,6 @@ public class ExpoCameraRtmpPublisherModule: Module {
     case .denied, .restricted:
       return ["status": "denied", "granted": false]
     case .notDetermined:
-      // Create a promise for asynchronous request
       let semaphore = DispatchSemaphore(value: 0)
       var resultDict: [String: Any] = ["status": "denied", "granted": false]
       
@@ -99,7 +87,6 @@ public class ExpoCameraRtmpPublisherModule: Module {
         semaphore.signal()
       }
       
-      // Wait for permission request completion (blocking call)
       _ = semaphore.wait(timeout: .distantFuture)
       return resultDict
     @unknown default:
@@ -116,7 +103,6 @@ public class ExpoCameraRtmpPublisherModule: Module {
     case .denied, .restricted:
       return ["status": "denied", "granted": false]
     case .notDetermined:
-      // Create a promise for asynchronous request
       let semaphore = DispatchSemaphore(value: 0)
       var resultDict: [String: Any] = ["status": "denied", "granted": false]
       
@@ -127,7 +113,6 @@ public class ExpoCameraRtmpPublisherModule: Module {
         semaphore.signal()
       }
       
-      // Wait for permission request completion (blocking call)
       _ = semaphore.wait(timeout: .distantFuture)
       return resultDict
     @unknown default:
@@ -168,6 +153,4 @@ public class ExpoCameraRtmpPublisherModule: Module {
       return ["status": "denied", "granted": false]
     }
   }
-    
- 
 }
